@@ -7,25 +7,47 @@ import (
 )
 
 func GetPeople(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(people)
+	if err := json.NewEncoder(w).Encode(people); err != nil {
+		panic(err)
+	}
 }
 
 func GetPerson(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	for _, item := range people {
 		if item.ID == params["id"] {
-			json.NewEncoder(w).Encode(item)
+			if err := json.NewEncoder(w).Encode(item); err != nil {
+				panic(err)
+			}
 			return
 		}
 	}
-	json.NewEncoder(w).Encode(&Person{})
+
+	if err := json.NewEncoder(w).Encode(&Person{}); err != nil {
+		panic(err)
+	}
 }
 
 func CreatePerson(w http.ResponseWriter, r *http.Request) {
 	var person Person
-	_ = json.NewDecoder(r.Body).Decode(&person)
+	if err := json.NewDecoder(r.Body).Decode(&person); err != nil {
+		panic(err)
+	}
+
+	for _, item := range people {
+		if item.ID == person.ID {
+			if err := json.NewEncoder(w).Encode(item); err != nil {
+				panic(err)
+			}
+			return
+		}
+	}
+
 	people = append(people, person)
-	json.NewEncoder(w).Encode(person)
+
+	if err := json.NewEncoder(w).Encode(person); err != nil {
+		panic(err)
+	}
 }
 
 func DeletePerson(w http.ResponseWriter, r *http.Request) {
@@ -35,6 +57,9 @@ func DeletePerson(w http.ResponseWriter, r *http.Request) {
 			people = append(people[:index], people[index+1:]...)
 			break
 		}
-		json.NewEncoder(w).Encode(people)
+	}
+
+	if err := json.NewEncoder(w).Encode(people); err != nil {
+		panic(err)
 	}
 }
