@@ -1,12 +1,51 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 func GetPeople(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT * FROM person")
+	if err != nil {
+		panic(err)
+	}
+
+	var people []Person
+	var person Person
+
+	for rows.Next() {
+		err = rows.Scan(&person.ID, &person.Firstname, &person.Lastname)
+		if err != nil {
+			panic(err)
+		}
+
+		var address Address
+
+		row := db.QueryRow("SELECT city, state FROM address WHERE idperson = $1", person.ID)
+		err = row.Scan(&address.City, &address.State)
+
+		switch err {
+		case sql.ErrNoRows:
+			fmt.Println("No rows were returned!")
+			return
+		case nil:
+			person.Address = &address
+		default:
+			panic(err)
+		}
+
+		people = append(people, person)
+	}
+
+	err = rows.Close()
+	if err != nil {
+		panic(err)
+	}
+
 	if err := json.NewEncoder(w).Encode(people); err != nil {
 		panic(err)
 	}
@@ -14,16 +53,30 @@ func GetPeople(w http.ResponseWriter, r *http.Request) {
 
 func GetPerson(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	for _, item := range people {
-		if item.ID == params["id"] {
-			if err := json.NewEncoder(w).Encode(item); err != nil {
-				panic(err)
-			}
-			return
+
+	var person Person
+	var address Address
+
+	row := db.QueryRow("SELECT * FROM person WHERE id = $1", params["id"])
+
+	err = row.Scan(&person.ID, &person.Firstname, &person.Lastname)
+	switch err {
+	case sql.ErrNoRows:
+	case nil:
+		row := db.QueryRow("SELECT city, state FROM address WHERE idperson = $1", person.ID)
+		err = row.Scan(&address.City, &address.State)
+		switch err {
+		case sql.ErrNoRows:
+		case nil:
+			person.Address = &address
+		default:
+			panic(err)
 		}
+	default:
+		panic(err)
 	}
 
-	if err := json.NewEncoder(w).Encode(&Person{}); err != nil {
+	if err := json.NewEncoder(w).Encode(&person); err != nil {
 		panic(err)
 	}
 }
@@ -34,19 +87,24 @@ func CreatePerson(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	for _, item := range people {
-		if item.ID == person.ID {
-			if err := json.NewEncoder(w).Encode(&Error{
-				Code:    2222,
-				Message: "Pessoa já cadastrada",
-			}); err != nil {
-				panic(err)
-			}
-			return
-		}
+	stmt, err := db.Prepare("INSERT INTO person(id, firstname, lastname) values(?,?,?)")
+	if err != nil {
+		panic(err)
 	}
 
-	people = append(people, person)
+	res, _ := stmt.Exec(person.ID, person.Firstname, person.Lastname)
+
+	if res != nil && person.Address != nil {
+		stmt, err := db.Prepare("INSERT INTO address(idperson, city, state) values(?,?,?)")
+		if err != nil {
+			panic(err)
+		}
+
+		_, err = stmt.Exec(person.ID, person.Address.City, person.Address.State)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	if err := json.NewEncoder(w).Encode(person); err != nil {
 		panic(err)
@@ -55,26 +113,18 @@ func CreatePerson(w http.ResponseWriter, r *http.Request) {
 
 func DeletePerson(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	find := false
-	for index, item := range people {
-		if item.ID == params["id"] {
-			find = true
-			people = append(people[:index], people[index+1:]...)
-			break
-		}
+
+	stmt, err := db.Prepare("delete from person where id=?")
+	if err != nil {
+		panic(err)
 	}
 
-	if !find {
-		if err := json.NewEncoder(w).Encode(&Error{
-			Code:    2222,
-			Message: "Pessoa não encontrada",
-		}); err != nil {
-			panic(err)
-		}
-		return
+	_, err = stmt.Exec(params["id"])
+	if err != nil {
+		panic(err)
 	}
 
-	if err := json.NewEncoder(w).Encode(people); err != nil {
+	if err := json.NewEncoder(w).Encode(true); err != nil {
 		panic(err)
 	}
 }

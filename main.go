@@ -1,40 +1,20 @@
 package main
 
 import (
+	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
 )
 
-var people []Person
+var db, err = sql.Open("sqlite3", "./database.sqlite")
 
 func main() {
-	router := NewRouter()
+	if err != nil {
+		panic(err)
+	}
 
-	people = append(people, Person{
-		ID:        "1",
-		Firstname: "John",
-		Lastname:  "Doe",
-		Address: &Address{
-			City:  "City X",
-			State: "State X",
-		},
-	})
+	syncDataBase()
 
-	people = append(people, Person{
-		ID:        "2",
-		Firstname: "Koko",
-		Lastname:  "Doe",
-		Address: &Address{
-			City:  "City Z",
-			State: "State Y",
-		},
-	})
-
-	people = append(people, Person{
-		ID:        "3",
-		Firstname: "Francis",
-		Lastname:  "Sunday",
-	})
-
-	log.Fatal(http.ListenAndServe(":8000", router))
+	log.Fatal(http.ListenAndServe(":8000", NewRouter()))
 }
