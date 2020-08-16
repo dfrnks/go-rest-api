@@ -36,7 +36,10 @@ func CreatePerson(w http.ResponseWriter, r *http.Request) {
 
 	for _, item := range people {
 		if item.ID == person.ID {
-			if err := json.NewEncoder(w).Encode(item); err != nil {
+			if err := json.NewEncoder(w).Encode(&Error{
+				Code:    2222,
+				Message: "Pessoa já cadastrada",
+			}); err != nil {
 				panic(err)
 			}
 			return
@@ -52,11 +55,23 @@ func CreatePerson(w http.ResponseWriter, r *http.Request) {
 
 func DeletePerson(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
+	find := false
 	for index, item := range people {
 		if item.ID == params["id"] {
+			find = true
 			people = append(people[:index], people[index+1:]...)
 			break
 		}
+	}
+
+	if !find {
+		if err := json.NewEncoder(w).Encode(&Error{
+			Code:    2222,
+			Message: "Pessoa não encontrada",
+		}); err != nil {
+			panic(err)
+		}
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(people); err != nil {
