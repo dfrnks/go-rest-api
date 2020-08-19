@@ -1,6 +1,7 @@
-package main
+package internal
 
 import (
+	"github.com/dfrnks/go-rest-api/internal/People"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -16,10 +17,10 @@ func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	router.Use(commonMiddleware)
 
-	router.HandleFunc("/contato", GetPeople).Methods("GET")
-	router.HandleFunc("/contato", CreatePerson).Methods("POST")
-	router.HandleFunc("/contato/{id}", GetPerson).Methods("GET")
-	router.HandleFunc("/contato/{id}", DeletePerson).Methods("DELETE")
+	router.HandleFunc("/contato", People.GetAll).Methods("GET")
+	router.HandleFunc("/contato", People.Create).Methods("POST")
+	router.HandleFunc("/contato/{id}", People.Get).Methods("GET")
+	router.HandleFunc("/contato/{id}", People.Delete).Methods("DELETE")
 
 	return router
 }

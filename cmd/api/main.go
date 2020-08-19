@@ -1,40 +1,14 @@
 package main
 
 import (
-	"database/sql"
-	"encoding/json"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/dfrnks/go-rest-api/internal"
+	"github.com/dfrnks/go-rest-api/internal/Database"
 	"log"
 	"net/http"
 )
 
-type NullString struct {
-	sql.NullString
-}
-
-// MarshalJSON for NullString
-func (ns *NullString) MarshalJSON() ([]byte, error) {
-	if !ns.Valid {
-		return []byte("null"), nil
-	}
-	return json.Marshal(ns.String)
-}
-
-// UnmarshalJSON for NullString
-func (ns *NullString) UnmarshalJSON(b []byte) error {
-	err := json.Unmarshal(b, &ns.String)
-	ns.Valid = err == nil
-	return err
-}
-
-var db, err = sql.Open("sqlite3", "./database.sqlite")
-
 func main() {
-	if err != nil {
-		panic(err)
-	}
+	Database.SyncDataBase()
 
-	SyncDataBase()
-
-	log.Fatal(http.ListenAndServe(":8000", NewRouter()))
+	log.Fatal(http.ListenAndServe(":8000", internal.NewRouter()))
 }
