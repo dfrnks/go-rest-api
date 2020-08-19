@@ -3,13 +3,12 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 func GetPeople(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT * FROM person")
+	rows, err := db.Query("SELECT p.id, p.firstname, p.lastname, a.city, a.state FROM person p LEFT JOIN address a on p.id = a.idperson")
 	if err != nil {
 		panic(err)
 	}
@@ -18,25 +17,14 @@ func GetPeople(w http.ResponseWriter, r *http.Request) {
 	var person Person
 
 	for rows.Next() {
-		err = rows.Scan(&person.ID, &person.Firstname, &person.Lastname)
+		var address Address
+
+		err = rows.Scan(&person.ID, &person.Firstname, &person.Lastname, &address.City, &address.State)
 		if err != nil {
 			panic(err)
 		}
 
-		var address Address
-
-		row := db.QueryRow("SELECT city, state FROM address WHERE idperson = $1", person.ID)
-		err = row.Scan(&address.City, &address.State)
-
-		switch err {
-		case sql.ErrNoRows:
-			fmt.Println("No rows were returned!")
-			return
-		case nil:
-			person.Address = &address
-		default:
-			panic(err)
-		}
+		person.Address = &address
 
 		people = append(people, person)
 	}
@@ -115,6 +103,16 @@ func DeletePerson(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	stmt, err := db.Prepare("delete from person where id=?")
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = stmt.Exec(params["id"])
+	if err != nil {
+		panic(err)
+	}
+
+	stmt, err = db.Prepare("delete from address where idperson=?")
 	if err != nil {
 		panic(err)
 	}

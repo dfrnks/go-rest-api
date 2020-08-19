@@ -1,5 +1,7 @@
 package main
 
+import "database/sql"
+
 func syncDataBase() {
 	createTables()
 	insertRows()
@@ -33,8 +35,8 @@ func insertRows() {
 		Firstname: "John",
 		Lastname:  "Doe",
 		Address: &Address{
-			City:  "City X",
-			State: "State X",
+			City:  NullString{sql.NullString{String: "City X", Valid: true}},
+			State: NullString{sql.NullString{String: "State X", Valid: true}},
 		},
 	})
 	people = append(people, Person{
@@ -42,18 +44,14 @@ func insertRows() {
 		Firstname: "Koko",
 		Lastname:  "Doe",
 		Address: &Address{
-			City:  "City Z",
-			State: "State Y",
+			City:  NullString{sql.NullString{String: "City Z", Valid: true}},
+			State: NullString{sql.NullString{String: "State Y", Valid: true}},
 		},
 	})
 	people = append(people, Person{
 		ID:        3,
 		Firstname: "Francis",
 		Lastname:  "Sunday",
-		Address: &Address{
-			City:  "City W",
-			State: "State H",
-		},
 	})
 
 	for _, item := range people {

@@ -1,6 +1,6 @@
 package main
 
 type Address struct {
-	City  string `json:"city,omitempty"`
-	State string `json:"state,omitempty"`
+	City  NullString `json:"city,omitempty"`
+	State NullString `json:"state,omitempty"`
 }
