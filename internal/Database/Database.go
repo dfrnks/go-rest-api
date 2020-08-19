@@ -50,8 +50,8 @@ func insertRows() {
 		Firstname: "John",
 		Lastname:  "Doe",
 		Address: &Models.Address{
-			City:  Utils.NullString{sql.NullString{String: "City X", Valid: true}},
-			State: Utils.NullString{sql.NullString{String: "State X", Valid: true}},
+			City:  Utils.NullString{NullString: sql.NullString{String: "City X", Valid: true}},
+			State: Utils.NullString{NullString: sql.NullString{String: "State X", Valid: true}},
 		},
 	})
 	people = append(people, Models.Person{
@@ -59,8 +59,8 @@ func insertRows() {
 		Firstname: "Koko",
 		Lastname:  "Doe",
 		Address: &Models.Address{
-			City:  Utils.NullString{sql.NullString{String: "City Z", Valid: true}},
-			State: Utils.NullString{sql.NullString{String: "State Y", Valid: true}},
+			City:  Utils.NullString{NullString: sql.NullString{String: "City Z", Valid: true}},
+			State: Utils.NullString{NullString: sql.NullString{String: "State Y", Valid: true}},
 		},
 	})
 	people = append(people, Models.Person{

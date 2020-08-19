@@ -9,6 +9,7 @@ import (
 
 func Create(w http.ResponseWriter, r *http.Request) {
 	var person Models.Person
+
 	if err := json.NewDecoder(r.Body).Decode(&person); err != nil {
 		panic(err)
 	}
@@ -18,7 +19,10 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	res, _ := stmt.Exec(person.ID, person.Firstname, person.Lastname)
+	res, err := stmt.Exec(person.ID, person.Firstname, person.Lastname)
+	if err != nil {
+		panic(err)
+	}
 
 	if res != nil && person.Address != nil {
 		stmt, err := Database.Connection().Prepare("INSERT INTO address(idperson, city, state) values(?,?,?)")
