@@ -2,7 +2,7 @@ package main
 
 import "database/sql"
 
-func syncDataBase() {
+func SyncDataBase() {
 	createTables()
 	insertRows()
 }

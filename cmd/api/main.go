@@ -34,7 +34,7 @@ func main() {
 		panic(err)
 	}
 
-	syncDataBase()
+	SyncDataBase()
 
 	log.Fatal(http.ListenAndServe(":8000", NewRouter()))
 }
